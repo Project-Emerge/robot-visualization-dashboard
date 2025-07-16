@@ -42,6 +42,11 @@ function ControlPanel({ commandPublisher, robot }: ControlPanelProps) {
     if (intervalId) {
       clearInterval(intervalId);
       setIntervalId(null);
+      const command: Vector2D = {
+        x: 0,
+        y: 0,
+      };
+      commandPublisher.publishMoveCommand(robot.id, command);
     }
   };
 

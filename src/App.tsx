@@ -11,8 +11,8 @@ import { MQTTEventStream } from './utils/MQTTEventStream';
 import { FakeCommandPublisher } from './utils/FakeCommandPublisher';
 import { MQTTCommandPublisher } from './utils/MQTTCommandPublisher';
 
-const MQTT_BROKER_URL = 'ws://YOUR_MQTT_BROKER_URL'; // Replace with actual broker
-const USE_FAKE_DATA = true; // set to false to enable MQTT
+const MQTT_BROKER_URL = 'wss://broker.emqx.io:8084/mqtt'; // Replace with actual broker
+const USE_FAKE_DATA = false; // set to false to enable MQTT
 
 const eventStream: EventStream = USE_FAKE_DATA
   ? new FakeEventStream(10)
@@ -45,6 +45,8 @@ function App() {
 
   const handleRobotClick = (id: number | null) => {
     console.log(`Robot clicked: ${id}`);
+    console.log(`Selected robot: ${robots}`)
+    console.log(`Selected robot ID: ${id}`);
     setSelectedRobot((prevSelectedRobot) => (prevSelectedRobot === id ? null : id));
   };
 

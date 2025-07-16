@@ -14,7 +14,7 @@ function NeighborLines({ robots }: { robots: RobotData[] }) {
 
     robots.forEach((robot) => {
       const from = new THREE.Vector3(robot.position.x, 0, robot.position.y);
-      robot.neighbors.forEach(nid => {
+      robot.neighbors?.forEach(nid => {
         const neighbor = robots[nid];
         if (!neighbor) return;
         const to = new THREE.Vector3(neighbor.position.x, 0, neighbor.position.y);

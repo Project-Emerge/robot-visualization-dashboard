@@ -37,7 +37,8 @@ function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.set(position.x, 0, position.y);
-      meshRef.current.rotation.set(0, THREE.MathUtils.degToRad(orientation), 0);
+      // Apply orientation with a -90 degree offset to align with X-axis
+      meshRef.current.rotation.set(0, THREE.MathUtils.degToRad(orientation - 180), 0);
       meshRef.current.userData = { id }; // Set userData with robot ID
     }
     if (textRef.current) {

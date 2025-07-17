@@ -20,11 +20,28 @@ function CameraController({ trigger }: { trigger: number }) {
 function RobotScene({ robots, trigger, onRobotClick }: { robots: RobotData[]; trigger: number; onRobotClick: (id: number | null) => void }) {
   return (
     <>
-      <Canvas onPointerMissed={(e) => onRobotClick(null)}> 
+      <Canvas 
+        onPointerMissed={() => onRobotClick(null)}
+        shadows // Enable shadow rendering
+      > 
         <axesHelper args={[100]} />
         <CameraController trigger={trigger} /> 
         <OrbitControls enablePan={false} minPolarAngle={0} maxPolarAngle={Math.PI / 2.5} />
-        <ambientLight />
+        
+        {/* Lighting setup for shadows */}
+        <ambientLight intensity={0.4} />
+        <directionalLight
+          position={[10, 20, 10]}
+          intensity={1}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-far={50}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+        />
+        
         <NeighborLines robots={robots} />
         <group> 
           {robots.map((robot) => (

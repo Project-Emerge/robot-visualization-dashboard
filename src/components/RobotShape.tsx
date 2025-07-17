@@ -1,21 +1,43 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Text, useGLTF } from '@react-three/drei';
 import type { RobotData } from '../types/RobotData';
 
 
 function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number) => void }) {
   const { position, orientation, isLeader, id } = data;
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Group>(null);
   const textRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
+  
+  // Load the GLB model
+  const { scene } = useGLTF('/src/assets/base.glb');
+  
+  // Use the original model with leader/follower coloring
+  const robotModel = useMemo(() => {
+    const clonedScene = scene.clone();
+    const color = isLeader ? 'gold' : 'skyblue';
+    
+    // Ensure all meshes in the model cast shadows and apply color
+    clonedScene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material instanceof THREE.Material) {
+          child.material = child.material.clone();
+          (child.material as any).color = new THREE.Color(color);
+        }
+      }
+    });
+    
+    return clonedScene;
+  }, [scene, isLeader]);
 
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.set(position.x, 0, position.y);
-      meshRef.current.rotation.set(0, 0, THREE.MathUtils.degToRad(-90)); //cones are rotated of 90 degrees to face the X-axis
-      meshRef.current.rotateX(THREE.MathUtils.degToRad(orientation)) // Rotate cones correctly to face the X-axis orientation
+      meshRef.current.rotation.set(0, THREE.MathUtils.degToRad(orientation), 0);
       meshRef.current.userData = { id }; // Set userData with robot ID
     }
     if (textRef.current) {
@@ -25,13 +47,20 @@ function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number
 
   return (
     <>
-      <mesh ref={meshRef} castShadow receiveShadow onClick={(event) => {
-        event.stopPropagation(); // Prevent event bubbling
-        if (onClick) onClick(data.id);
-      }}>
-        <coneGeometry args={[0.5, 1.5, 32]} /> {/* Arrow shape */}
-        <meshStandardMaterial color={isLeader ? 'gold' : 'skyblue'} />
-      </mesh>
+      <group 
+        ref={meshRef} 
+        castShadow 
+        receiveShadow 
+        onClick={(event) => {
+          event.stopPropagation(); // Prevent event bubbling
+          if (onClick) onClick(data.id);
+        }}
+      >
+        <primitive 
+          object={robotModel} 
+          scale={[0.01, 0.01, 0.01]}
+        />
+      </group>
       <Text
         ref={textRef}
         position={[position.x, 1.5, position.y]} // Position text above the mesh
@@ -46,5 +75,8 @@ function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number
     </>
   );
 }
+
+// Preload the GLB model
+useGLTF.preload('/src/assets/base.glb');
 
 export default RobotShape;

@@ -4,7 +4,29 @@ import * as THREE from 'three';
 import { Text, useGLTF } from '@react-three/drei';
 import type { RobotData } from '../types/RobotData';
 
+const normalizeAngle = (angle: number): number => {
+  return ((angle + Math.PI) % (2 * Math.PI)) - Math.PI;
+};
 
+// Helper: check and fix diagonal orientation
+const fixOrientation = (angle: number): number => {
+  const normalized = normalizeAngle(angle);
+  const tol = 0.01;
+
+  // Check for diagonals: 45°, 135°, -45°, -135°
+  const diagonals = [Math.PI / 4, 3 * Math.PI / 4, -Math.PI / 4, -3 * Math.PI / 4];
+
+  const isDiagonal = diagonals.some(
+    (diag) => Math.abs(normalized - diag) < tol
+  );
+
+  if (isDiagonal) {
+    // Rotate by -90 degrees (–π/2)
+    return normalized - Math.PI / 2;
+  }
+
+  return normalized;
+};
 function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number) => void }) {
   const { position, orientation, isLeader, id } = data;
   const meshRef = useRef<THREE.Group>(null);
@@ -37,8 +59,9 @@ function RobotShape({ data, onClick }: { data: RobotData; onClick?: (id : number
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.position.set(position.x, 0, position.y);
-      // Apply orientation with a -90 degree offset to align with X-axis
-      meshRef.current.rotation.set(0, THREE.MathUtils.degToRad(orientation - 180), 0);
+       const correctedOrientation = fixOrientation(orientation);
+      // Apply orientation (already in radians from -pi to pi) with a -180 degree offset to align with X-axis
+      meshRef.current.rotation.set(0, -orientation , 0);
       meshRef.current.userData = { id }; // Set userData with robot ID
     }
     if (textRef.current) {
